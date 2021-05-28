@@ -1,10 +1,27 @@
-use std::path::PathBuf;
+use std::fs::{create_dir_all, File};
+use std::io::prelude::*;
+use std::path::{Path, PathBuf};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
-pub enum Error {}
+pub enum Error {
+    #[error("cannot create dir")]
+    Fs(#[from] std::io::Error),
+}
 
 pub type Result<T> = std::result::Result<T, Error>;
+
+pub fn setup_fs<P: AsRef<Path>, S: Into<String>>(root: P, tree: S) -> Result<()> {
+    let entries = parse_fs_tree(tree);
+    for (path, content) in entries {
+        let full_path = root.as_ref().join(path);
+        let dir = full_path.parent().expect("not supported");
+        create_dir_all(dir)?;
+        let mut file = File::create(&full_path)?;
+        file.write_all(content.as_bytes())?;
+    }
+    Ok(())
+}
 
 fn parse_fs_tree<S: Into<String>>(tree: S) -> Vec<(PathBuf, String)> {
     let mut res = Vec::new();
@@ -37,25 +54,35 @@ fn parse_fs_tree<S: Into<String>>(tree: S) -> Vec<(PathBuf, String)> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs::read_to_string;
+    use tempfile::TempDir;
+
     #[test]
     fn test_parse_fs_tree() -> Result<()> {
+        // given
         let tree = r#"
         |_initial-content
         | |_jcr-root
         |   |_content
-        |     "initial-content"
+        |     |_test-file
+        |       "initial-content"
+        |
         |_server-zip
           |_jcr-root
             |_content
-              "zip-content"
+              |_test-file
+                "zip-content"
     "#;
 
+        // when
         let files = parse_fs_tree(tree);
+
+        // then
         assert_eq!(files.len(), 2);
         assert_eq!(
             files[0],
             (
-                PathBuf::from("initial-content/jcr-root/content"),
+                PathBuf::from("initial-content/jcr-root/content/test-file"),
                 "initial-content".into()
             )
         );
@@ -63,10 +90,47 @@ mod tests {
         assert_eq!(
             files[1],
             (
-                PathBuf::from("server-zip/jcr-root/content"),
+                PathBuf::from("server-zip/jcr-root/content/test-file"),
                 "zip-content".into()
             )
         );
+        Ok(())
+    }
+
+    #[test]
+    fn test_setup_fs() -> Result<()> {
+        // given
+        let tree = r#"
+        |_initial-content
+        | |_jcr-root
+        |   |_content
+        |     |_test-file
+        |       "initial-content"
+        |_server-zip
+          |_jcr-root
+            |_content
+              |_test-file
+                "zip-content"
+    "#;
+        let tmp_dir = TempDir::new()?;
+
+        // when
+        setup_fs(tmp_dir.path(), tree)?;
+
+        // then
+        assert!(Path::new(
+            &tmp_dir
+                .path()
+                .join("initial-content/jcr-root/content/test-file")
+        )
+        .exists());
+        let content = read_to_string(
+            &tmp_dir
+                .path()
+                .join("initial-content/jcr-root/content/test-file"),
+        )?;
+        assert_eq!(content, "initial-content");
+
         Ok(())
     }
 }
