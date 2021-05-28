@@ -20,7 +20,13 @@ fn parse_fs_tree<S: Into<String>>(tree: S) -> Vec<(PathBuf, String)> {
         let mut chars = e.chars();
         chars.next_back();
         let chars = chars.as_str();
-        let parts: Vec<&str> = chars.split("\"").collect();
+        let mut parts: Vec<&str> = chars.split("\"").collect();
+        let path_part = parts[0];
+        if path_part.chars().next() == Some('/') {
+            let mut part_chars = path_part.chars();
+            part_chars.next();
+            parts[0] = part_chars.as_str();
+        }
         let path = PathBuf::from(parts[0]);
         let filecontent = parts[1].to_string();
         res.push((path, filecontent));
@@ -45,11 +51,20 @@ mod tests {
     "#;
 
         let files = parse_fs_tree(tree);
+        assert_eq!(files.len(), 2);
         assert_eq!(
             files[0],
             (
-                PathBuf::from("/initial-content/jcr-root/content"),
+                PathBuf::from("initial-content/jcr-root/content"),
                 "initial-content".into()
+            )
+        );
+
+        assert_eq!(
+            files[1],
+            (
+                PathBuf::from("server-zip/jcr-root/content"),
+                "zip-content".into()
             )
         );
         Ok(())
