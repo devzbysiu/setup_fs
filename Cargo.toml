@@ -8,6 +8,7 @@ edition = "2018"
 
 [dependencies]
 thiserror = "1.0.25"
+doc-comment = "0.3.3"
 
 [dev-dependencies]
 tempfile = "3.1.0"

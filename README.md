@@ -1,21 +1,21 @@
 <div align="center">
 
-  <h1><code>setupfs</code></h1>
+  <h1><code>setup_fs</code></h1>
 
   <h3>
-    <strong>CHANGEME</strong>
+    <strong>Easy way to setup complicated filesystem structures</strong>
   </h3>
 
   <p>
-   <img src="https://github.com/devzbysiu/setupfs/workflows/ci/badge.svg" alt="CI status
+   <img src="https://github.com/devzbysiu/setup_fs/workflows/ci/badge.svg" alt="CI status
     badge" />
-    <a href="https://codecov.io/gh/devzbysiu/setupfs">
-      <img src="https://img.shields.io/codecov/c/github/devzbysiu/setupfs?style=for-the-badge&token=f2339b3de9e44be0a902458a669c1160" alt="Code coverage"/>
+    <a href="https://codecov.io/gh/devzbysiu/setup_fs">
+      <img src="https://img.shields.io/codecov/c/github/devzbysiu/setup_fs?style=for-the-badge&token=f2339b3de9e44be0a902458a669c1160" alt="Code coverage"/>
     </a>
-    <a href="https://crates.io/crates/setupfs">
-      <img src="https://img.shields.io/crates/l/setupfs?style=for-the-badge" alt="License"/>
+    <a href="https://crates.io/crates/setup_fs">
+      <img src="https://img.shields.io/crates/l/setup_fs?style=for-the-badge" alt="License"/>
     </a>
-    <a href="https://docs.rs/setupfs">
+    <a href="https://docs.rs/setup_fs">
       <img src="https://img.shields.io/badge/docs-latest-blue.svg?style=for-the-badge" alt="docs.rs docs" />
     </a>
   </p>
@@ -37,7 +37,33 @@
 
 # <p id="about">About</p>
 
-## --- TODO ---
+This is very small library which allows to quickly setup complicated filesystem structures in tree-like
+manner.
+
+Example:
+```rust
+use tempfile::TempDir;
+use std::error::Error;
+use setup_fs::setup_fs;
+
+fn main() -> Result<(), Box<dyn Error>> {
+    let tree = r#"
+          |_initial-content
+          | |_jcr-root
+          |   |_content
+          |     |_test-file
+          |       "initial-content"
+          |_server-zip
+            |_jcr-root
+              |_content
+                |_test-file
+                  "zip-content"
+      "#;
+    let tmp_dir = TempDir::new()?;
+    setup_fs(tmp_dir.path(), tree)?;
+    Ok(())
+}
+```
 
 # <p id="installation">Installation</p>
 

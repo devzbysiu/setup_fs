@@ -1,7 +1,10 @@
+use doc_comment::doctest;
 use std::fs::{create_dir_all, File};
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 use thiserror::Error;
+
+doctest!("../README.md");
 
 #[derive(Error, Debug)]
 pub enum Error {
