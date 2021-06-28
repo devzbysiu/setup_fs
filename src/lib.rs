@@ -28,12 +28,15 @@ pub fn setup_fs<P: AsRef<Path>, S: Into<String>>(root: P, tree: S) -> Result<()>
 
 fn parse_fs_tree<S: Into<String>>(tree: S) -> Vec<(PathBuf, String)> {
     let mut res = Vec::new();
-    let mut tree = tree.into();
-    tree = tree.replace("\n", "");
-    tree = tree.chars().filter(|c| !c.is_whitespace()).collect();
-    tree = tree.replace("||", "|");
-    tree = tree.replace("|_", "/");
-    tree = tree.replace("|", "");
+    let tree = tree
+        .into()
+        .replace("\n", "")
+        .chars()
+        .filter(|c| !c.is_whitespace())
+        .collect::<String>()
+        .replace("||", "|")
+        .replace("|_", "/")
+        .replace("|", "");
     let entries: Vec<&str> = tree.split_inclusive("\"/").collect();
     for entry in entries {
         let e = entry.replace("\"/", "\"");
