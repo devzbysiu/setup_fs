@@ -14,6 +14,7 @@ pub enum Error {
 
 pub type Result<T> = std::result::Result<T, Error>;
 
+#[allow(clippy::missing_errors_doc)]
 pub fn setup_fs<P: AsRef<Path>, S: Into<String>>(root: P, tree: S) -> Result<()> {
     let entries = parse_fs_tree(tree);
     for (path, content) in entries {
@@ -43,9 +44,9 @@ fn parse_fs_tree<S: Into<String>>(tree: S) -> Vec<(PathBuf, String)> {
         let mut chars = e.chars();
         chars.next_back();
         let chars = chars.as_str();
-        let mut parts: Vec<&str> = chars.split("\"").collect();
+        let mut parts: Vec<&str> = chars.split('"').collect();
         let path_part = parts[0];
-        if path_part.chars().next() == Some('/') {
+        if path_part.starts_with('/') {
             let mut part_chars = path_part.chars();
             part_chars.next();
             parts[0] = part_chars.as_str();
@@ -64,7 +65,7 @@ mod tests {
     use tempfile::TempDir;
 
     #[test]
-    fn test_parse_fs_tree() -> Result<()> {
+    fn test_parse_fs_tree() {
         // given
         let tree = r#"
         |_initial-content
@@ -100,7 +101,6 @@ mod tests {
                 "zip-content".into()
             )
         );
-        Ok(())
     }
 
     #[test]
