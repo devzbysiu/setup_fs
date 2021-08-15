@@ -1,4 +1,10 @@
 use doc_comment::doctest;
+use nom::bytes::complete::tag;
+use nom::character::complete::{alpha1, char, space0};
+use nom::combinator::opt;
+use nom::multi::many1;
+use nom::sequence::tuple;
+use nom::IResult;
 use std::fs::{create_dir_all, File};
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
@@ -58,11 +64,104 @@ fn parse_fs_tree<S: Into<String>>(tree: S) -> Vec<(PathBuf, String)> {
     res
 }
 
+fn parse_tree(input: &str) -> IResult<&str, Vec<Entry>> {
+    let (i, entries) = many1(entry)(input)?;
+    Ok((i, entries))
+}
+
+fn entry(input: &str) -> IResult<&str, Entry> {
+    let (i, _) = entry_prefix(input)?;
+    let (i, (_, _, value, _)) = tuple((opt(char('|')), tag("_"), alpha1, char('\n')))(i)?;
+    Ok((
+        i,
+        Entry {
+            value: value.into(),
+        },
+    ))
+}
+
+fn entry_prefix(input: &str) -> IResult<&str, ()> {
+    let (i, _) = tuple((opt(char('|')), space0))(input)?;
+    Ok((i, ()))
+}
+
+#[derive(Debug, Default, PartialEq, Eq)]
+pub(crate) struct Entry {
+    value: String,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use std::fs::read_to_string;
     use tempfile::TempDir;
+
+    #[test]
+    fn test_parse_tree_without_file_content() {
+        let tree = r#"|_initialcontent
+  |_jcrroot
+    |_content
+      |_testfile
+"#;
+
+        // when
+        let res = parse_tree(tree);
+
+        // then
+        assert_eq!(
+            res,
+            Ok((
+                "",
+                vec![
+                    Entry {
+                        value: "initialcontent".into(),
+                    },
+                    Entry {
+                        value: "jcrroot".into(),
+                    },
+                    Entry {
+                        value: "content".into(),
+                    },
+                    Entry {
+                        value: "testfile".into(),
+                    }
+                ]
+            ))
+        );
+    }
+
+    #[test]
+    fn test_entry_prefix() {
+        // given
+        let input = "|              |_testentry";
+
+        // when
+        let res = entry_prefix(input);
+
+        // then
+        assert_eq!(res, Ok(("|_testentry", ())));
+    }
+
+    #[test]
+    fn test_entry() {
+        // given
+        let input = r#"|_testentry
+"#;
+
+        // when
+        let res = entry(input);
+
+        // then
+        assert_eq!(
+            res,
+            Ok((
+                "",
+                Entry {
+                    value: "testentry".into()
+                }
+            ))
+        );
+    }
 
     #[test]
     fn test_parse_fs_tree() {
