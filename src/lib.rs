@@ -64,6 +64,7 @@ fn parse_fs_tree<S: Into<String>>(tree: S) -> Vec<(PathBuf, String)> {
     res
 }
 
+#[allow(dead_code)]
 fn parse_tree(input: &str) -> IResult<&str, Tree> {
     let (i, subtrees) = many1(subtree)(input)?;
     Ok((i, Tree::new(subtrees)))
