@@ -1,7 +1,7 @@
 use doc_comment::doctest;
+use nom::branch::alt;
 use nom::bytes::complete::tag;
-use nom::character::complete::{alpha1, char, space0};
-use nom::combinator::opt;
+use nom::character::complete::{alpha1, char, space0, space1};
 use nom::multi::many1;
 use nom::sequence::tuple;
 use nom::IResult;
@@ -64,30 +64,70 @@ fn parse_fs_tree<S: Into<String>>(tree: S) -> Vec<(PathBuf, String)> {
     res
 }
 
-fn parse_tree(input: &str) -> IResult<&str, Vec<Entry>> {
-    let (i, entries) = many1(entry)(input)?;
-    Ok((i, entries))
+fn parse_tree(input: &str) -> IResult<&str, Tree> {
+    let (i, subtrees) = many1(subtree)(input)?;
+    Ok((i, Tree::new(subtrees)))
+}
+
+fn subtree(input: &str) -> IResult<&str, Subtree> {
+    let (i, (root, mut entries)) = tuple((root, many1(entry)))(input)?;
+    entries.insert(0, root);
+    Ok((i, Subtree::new(entries)))
+}
+
+fn root(input: &str) -> IResult<&str, Entry> {
+    let (i, (_, root, _)) = tuple((tag("|_"), alpha1, char('\n')))(input)?;
+    Ok((i, Entry::new(root)))
 }
 
 fn entry(input: &str) -> IResult<&str, Entry> {
-    let (i, _) = entry_prefix(input)?;
-    let (i, (_, _, value, _)) = tuple((opt(char('|')), tag("_"), alpha1, char('\n')))(i)?;
-    Ok((
-        i,
-        Entry {
-            value: value.into(),
-        },
-    ))
+    let (i, (_, value, _)) = tuple((entry_prefix, alpha1, char('\n')))(input)?;
+    Ok((i, Entry::new(value)))
 }
 
 fn entry_prefix(input: &str) -> IResult<&str, ()> {
-    let (i, _) = tuple((opt(char('|')), space0))(input)?;
+    // let (i, _) = alt((tuple((char('|'), space1)), tuple((space0, char('|')))))(input)?;
+    let (i, _) = alt((tuple((char('|'), char('o'))), tuple((char('|'), char('o')))))(input)?;
     Ok((i, ()))
 }
 
 #[derive(Debug, Default, PartialEq, Eq)]
+pub(crate) struct Tree {
+    subtrees: Vec<Subtree>,
+}
+
+impl Tree {
+    fn new(subtrees: Vec<Subtree>) -> Self {
+        Self {
+            subtrees: subtrees.to_vec(),
+        }
+    }
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub(crate) struct Subtree {
+    entries: Vec<Entry>,
+}
+
+impl Subtree {
+    fn new(entries: Vec<Entry>) -> Self {
+        Self {
+            entries: entries.to_vec(),
+        }
+    }
+}
+
+#[derive(Debug, Default, PartialEq, Eq, Clone)]
 pub(crate) struct Entry {
     value: String,
+}
+
+impl Entry {
+    fn new<S: Into<String>>(value: S) -> Self {
+        Self {
+            value: value.into(),
+        }
+    }
 }
 
 #[cfg(test)]
@@ -97,49 +137,16 @@ mod tests {
     use tempfile::TempDir;
 
     #[test]
-    fn test_parse_tree_without_file_content() {
-        let tree = r#"|_initialcontent
-  |_jcrroot
-    |_content
-      |_testfile
+    fn test_root() {
+        // given
+        let input = r#"|_testentry
 "#;
 
         // when
-        let res = parse_tree(tree);
+        let res = root(input);
 
         // then
-        assert_eq!(
-            res,
-            Ok((
-                "",
-                vec![
-                    Entry {
-                        value: "initialcontent".into(),
-                    },
-                    Entry {
-                        value: "jcrroot".into(),
-                    },
-                    Entry {
-                        value: "content".into(),
-                    },
-                    Entry {
-                        value: "testfile".into(),
-                    }
-                ]
-            ))
-        );
-    }
-
-    #[test]
-    fn test_entry_prefix() {
-        // given
-        let input = "|              |_testentry";
-
-        // when
-        let res = entry_prefix(input);
-
-        // then
-        assert_eq!(res, Ok(("|_testentry", ())));
+        assert_eq!(res, Ok(("", Entry::new("testentry"))));
     }
 
     #[test]
@@ -152,13 +159,104 @@ mod tests {
         let res = entry(input);
 
         // then
+        assert_eq!(res, Ok(("", Entry::new("testentry"))));
+    }
+
+    #[test]
+    fn test_entry_when_many_subtrees() {
+        // given
+        let input = r#"| |_testentry
+"#;
+
+        // when
+        let res = entry(input);
+
+        // then
+        assert_eq!(res, Ok(("", Entry::new("testentry"))));
+    }
+
+    #[test]
+    fn test_subtree_without_file_content() {
+        let tree = r#"|_initialcontent
+                        |_jcrroot
+                          |_content
+                            |_testfile
+"#;
+
+        // when
+        let res = subtree(tree);
+
+        // then
         assert_eq!(
             res,
             Ok((
                 "",
-                Entry {
-                    value: "testentry".into()
-                }
+                Subtree::new(vec![
+                    Entry::new("initialcontent"),
+                    Entry::new("jcrroot"),
+                    Entry::new("content"),
+                    Entry::new("testfile")
+                ])
+            ))
+        );
+    }
+
+    #[test]
+    fn test_tree_with_single_subtree() {
+        let tree = r#"|_initialcontent
+                        |_jcrroot
+                          |_content
+                            |_testfile
+"#;
+
+        // when
+        let res = parse_tree(tree);
+
+        // then
+        assert_eq!(
+            res,
+            Ok((
+                "",
+                Tree::new(vec![Subtree::new(vec![
+                    Entry::new("initialcontent"),
+                    Entry::new("jcrroot"),
+                    Entry::new("content"),
+                    Entry::new("testfile")
+                ]),])
+            ))
+        );
+    }
+
+    #[test]
+    fn test_parse_tree_without_file_content() {
+        let tree = r#"|_initialcontent
+                      | |_jcrroot
+                      |   |_content
+                      |     |_testfile
+                      |_otherdir
+                        |_subdir
+                          |_testfile
+"#;
+        let tree = r#"|_initialcontent
+                      | |_jcrroot
+"#;
+
+        // when
+        let res = parse_tree(tree);
+
+        // then
+        assert_eq!(
+            res,
+            Ok((
+                "",
+                Tree::new(vec![
+                    Subtree::new(vec![Entry::new("initialcontent"), Entry::new("jcrroot"),]),
+                    // Subtree::new(vec![
+                    //     Entry::new("otherdir"),
+                    //     Entry::new("subdir"),
+                    //     Entry::new("testfile"),
+                    // ])
+                ])
             ))
         );
     }
