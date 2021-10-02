@@ -2,6 +2,7 @@ use doc_comment::doctest;
 use nom::branch::alt;
 use nom::bytes::complete::tag;
 use nom::character::complete::{alpha1, char, space0, space1};
+use nom::combinator::opt;
 use nom::multi::many1;
 use nom::sequence::tuple;
 use nom::IResult;
@@ -87,8 +88,7 @@ fn entry(input: &str) -> IResult<&str, Entry> {
 }
 
 fn entry_prefix(input: &str) -> IResult<&str, ()> {
-    // let (i, _) = alt((tuple((char('|'), space1)), tuple((space0, char('|')))))(input)?;
-    let (i, _) = alt((tuple((char('|'), char('o'))), tuple((char('|'), char('o')))))(input)?;
+    let (i, _) = tuple((space1, opt(tuple((char('|'), space1))), tag("|_")))(input)?;
     Ok((i, ()))
 }
 
@@ -145,19 +145,6 @@ mod tests {
 
         // when
         let res = root(input);
-
-        // then
-        assert_eq!(res, Ok(("", Entry::new("testentry"))));
-    }
-
-    #[test]
-    fn test_entry() {
-        // given
-        let input = r#"|_testentry
-"#;
-
-        // when
-        let res = entry(input);
 
         // then
         assert_eq!(res, Ok(("", Entry::new("testentry"))));
@@ -238,9 +225,9 @@ mod tests {
                         |_subdir
                           |_testfile
 "#;
-        let tree = r#"|_initialcontent
-                      | |_jcrroot
-"#;
+        //         let tree = r#"|_initialcontent
+        //                         |_jcrroot
+        // "#;
 
         // when
         let res = parse_tree(tree);
