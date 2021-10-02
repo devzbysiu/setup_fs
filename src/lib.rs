@@ -216,7 +216,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_tree_without_file_content() {
+    fn test_parse_tree_with_multiple_subtrees() {
         let tree = r#"|_initialcontent
                       | |_jcrroot
                       |   |_content
