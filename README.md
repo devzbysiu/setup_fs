@@ -3,7 +3,7 @@
   <h1><code>setup_fs</code></h1>
 
   <h3>
-    <strong>Easy way to setup complicated filesystem structures</strong>
+    <strong>Easy way to create directory structures on the filesystem</strong>
   </h3>
 
   <p>
@@ -23,9 +23,9 @@
   <h3>
     <a href="#about">About</a>
     <span> | </span>
-    <a href="#installation">Installation</a>
+    <a href="#example">Example</a>
     <span> | </span>
-    <a href="#configuration">Configuration</a>
+    <a href="#installation">Installation</a>
     <span> | </span>
     <a href="#license">License</a>
     <span> | </span>
@@ -37,10 +37,13 @@
 
 # <p id="about">About</p>
 
-This is very small library which allows to quickly setup complicated filesystem structures in tree-like
-manner.
+This is very small library which allows to quickly setup directory structures in tree-like manner.
 
-Example:
+**NOTE:** This is very limited library and not battle tested. I'm using it in my personal projects
+only in tests to quickly create desired filesystem without boilerplate.
+
+# <p id="example">Example</p>
+
 ```rust
 use tempfile::TempDir;
 use std::error::Error;
@@ -67,11 +70,11 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 # <p id="installation">Installation</p>
 
-## --- TODO ---
-
-# <p id="configuration">Configuration</p>
-
-## --- TODO ---
+Add as a dependency to your `Cargo.toml`:
+```toml
+[dependencies]
+setup_fs = "0.1.0"
+```
 
 # <p id="license">License</p>
 
