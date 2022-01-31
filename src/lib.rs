@@ -1,3 +1,6 @@
+// #![deny(missing_docs)] // TODO: uncomment this
+#![doc(html_root_url = "https://docs.rs/setup_fs/0.1.0")]
+
 use doc_comment::doctest;
 use std::fs::{create_dir_all, File};
 use std::io::prelude::*;
