@@ -11,9 +11,7 @@
     <a href="https://codecov.io/gh/devzbysiu/setup_fs">
       <img src="https://img.shields.io/codecov/c/github/devzbysiu/setup_fs?style=for-the-badge&token=f2339b3de9e44be0a902458a669c1160" alt="Code coverage"/>
     </a>
-    <a href="https://crates.io/crates/setup_fs">
-      <img src="https://img.shields.io/badge/license-MIT%2FAPACHE--2.0-blue?style=for-the-badge" alt="License"/>
-    </a>
+    <img src="https://img.shields.io/badge/license-MIT%2FAPACHE--2.0-blue?style=for-the-badge" alt="License"/>
   </p>
 
   <h3>
