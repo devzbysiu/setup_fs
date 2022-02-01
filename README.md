@@ -13,10 +13,7 @@
       <img src="https://img.shields.io/codecov/c/github/devzbysiu/setup_fs?style=for-the-badge&token=f2339b3de9e44be0a902458a669c1160" alt="Code coverage"/>
     </a>
     <a href="https://crates.io/crates/setup_fs">
-      <img src="https://img.shields.io/crates/l/setup_fs?style=for-the-badge" alt="License"/>
-    </a>
-    <a href="https://docs.rs/setup_fs">
-      <img src="https://img.shields.io/badge/docs-latest-blue.svg?style=for-the-badge" alt="docs.rs docs" />
+      <img src="https://img.shields.io/badge/license-MIT%2FAPACHE--2.0-blue?style=for-the-badge" alt="License"/>
     </a>
   </p>
 
@@ -39,8 +36,9 @@
 
 This is very small library which allows to quickly setup directory structures in tree-like manner.
 
-**NOTE:** This is very limited library and not battle tested. I'm using it in my personal projects
-only in tests to quickly create desired filesystem without boilerplate.
+**NOTE:** This is very limited, incomplete and not battle tested library . I'm using it in my
+personal projects only in tests to quickly create desired filesystem without boilerplate.
+**I don't recommend using it it production**.
 
 # <p id="example">Example</p>
 
