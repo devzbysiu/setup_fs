@@ -68,7 +68,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 Add as a dependency to your `Cargo.toml`:
 ```toml
 [dependencies]
-setup_fs = "0.1.0"
+setup_fs = { git = "https://github.com/devzbysiu/setup_fs", rev = "036b2c8" }
 ```
 
 # <p id="license">License</p>
