@@ -46,8 +46,16 @@ doctest!("../README.md");
 #[derive(Error, Debug)]
 pub enum SetupFsError {
     /// Error was returned while creating a directory.
-    #[error("cannot create dir")]
-    Fs(#[from] std::io::Error),
+    #[error("cannot create dir '{0}': {1}")]
+    DirCreation(PathBuf, String),
+
+    /// Error was returned while creating a file.
+    #[error("cannot create file '{0}': {1}")]
+    FileCreation(PathBuf, String),
+
+    /// Error was returned while writing to a file.
+    #[error("cannot write to file '{0}': {1}")]
+    WritingFile(PathBuf, String),
 }
 
 /// Result type of the library.
@@ -63,9 +71,12 @@ pub fn setup_fs<P: AsRef<Path>, S: Into<String>>(root: P, tree: S) -> Result<()>
     for (path, content) in entries {
         let full_path = root.as_ref().join(path);
         let dir = full_path.parent().expect("not supported");
-        create_dir_all(dir)?;
-        let mut file = File::create(&full_path)?;
-        file.write_all(content.as_bytes())?;
+        create_dir_all(dir)
+            .map_err(|e| SetupFsError::DirCreation(dir.to_path_buf(), e.to_string()))?;
+        let mut file = File::create(&full_path)
+            .map_err(|e| SetupFsError::FileCreation(full_path.clone(), e.to_string()))?;
+        file.write_all(content.as_bytes())
+            .map_err(|e| SetupFsError::WritingFile(full_path, e.to_string()))?;
     }
     Ok(())
 }
