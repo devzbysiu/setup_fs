@@ -1,5 +1,38 @@
-// #![deny(missing_docs)] // TODO: uncomment this
+#![deny(missing_docs)] // TODO: uncomment this
 #![doc(html_root_url = "https://docs.rs/setup_fs/0.1.0")]
+
+//! This library is very simple (or even primitive) way of setting up directories on the filesystem
+//! by passing tree-like "description" of the filesystem.
+//!
+//! # Example
+//!  ```
+//! use tempfile::TempDir;
+//! use std::error::Error;
+//! use setup_fs::setup_fs;
+//!
+//! fn main() -> Result<(), Box<dyn Error>> {
+//!     let tree = r#"
+//!           |_initial-content
+//!           | |_jcr-root
+//!           |   |_content
+//!           |     |_test-file
+//!           |       "initial-content"
+//!           |_server-zip
+//!             |_jcr-root
+//!               |_content
+//!                 |_test-file
+//!                   "zip-content"
+//!       "#;
+//!     let tmp_dir = TempDir::new()?;
+//!     setup_fs(tmp_dir.path(), tree)?;
+//!     Ok(())
+//! }
+//! ```
+//!
+//! # **Warning**
+//! This library is not production ready. Consider it as a quick way to setup the filesystem for
+//! the testing purposes.
+//!
 
 use doc_comment::doctest;
 use std::fs::{create_dir_all, File};
@@ -9,14 +42,21 @@ use thiserror::Error;
 
 doctest!("../README.md");
 
+/// Error which can be returned by [setup_fs](setup_fs) function.
 #[derive(Error, Debug)]
 pub enum SetupFsError {
+    /// Error was returned while creating a directory.
     #[error("cannot create dir")]
     Fs(#[from] std::io::Error),
 }
 
+/// Result type of the library.
 pub type Result<T> = std::result::Result<T, SetupFsError>;
 
+/// The one and only public function of this library. It first converts the input string to a list
+/// of tuples `(PathBuf, String)`. The `String` here represents file content and it's not required.
+/// Then for each tuple on the list it simply creates each file writes the content if it's
+/// available.
 #[allow(clippy::missing_errors_doc)]
 pub fn setup_fs<P: AsRef<Path>, S: Into<String>>(root: P, tree: S) -> Result<()> {
     let entries = parse_fs_tree(tree);
