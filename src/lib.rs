@@ -56,6 +56,12 @@ pub enum SetupFsError {
     /// Error was returned while writing to a file.
     #[error("cannot write to file '{0}': {1}")]
     WritingFile(PathBuf, String),
+
+    /// Error was returned while creating full path. It can happen only when the root directory
+    /// passed to the [setup_fs](setup_fs) was the root of the filesystem and the path in the tree
+    /// was empty.
+    #[error("cannot get parent directory of {0}")]
+    EmptyPath(PathBuf),
 }
 
 /// Result type of the library.
@@ -70,7 +76,9 @@ pub fn setup_fs<P: AsRef<Path>, S: Into<String>>(root: P, tree: S) -> Result<()>
     let entries = parse_fs_tree(tree);
     for (path, content) in entries {
         let full_path = root.as_ref().join(path);
-        let dir = full_path.parent().expect("not supported");
+        let dir = full_path
+            .parent()
+            .ok_or_else(|| SetupFsError::EmptyPath(root.as_ref().to_path_buf()))?;
         create_dir_all(dir)
             .map_err(|e| SetupFsError::DirCreation(dir.to_path_buf(), e.to_string()))?;
         let mut file = File::create(&full_path)
