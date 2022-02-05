@@ -10,12 +10,12 @@ use thiserror::Error;
 doctest!("../README.md");
 
 #[derive(Error, Debug)]
-pub enum Error {
+pub enum SetupFsError {
     #[error("cannot create dir")]
     Fs(#[from] std::io::Error),
 }
 
-pub type Result<T> = std::result::Result<T, Error>;
+pub type Result<T> = std::result::Result<T, SetupFsError>;
 
 #[allow(clippy::missing_errors_doc)]
 pub fn setup_fs<P: AsRef<Path>, S: Into<String>>(root: P, tree: S) -> Result<()> {
