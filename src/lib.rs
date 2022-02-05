@@ -32,7 +32,6 @@
 //! # **Warning**
 //! This library is not production ready. Consider it as a quick way to setup the filesystem for
 //! the testing purposes.
-//!
 
 use doc_comment::doctest;
 use std::fs::{create_dir_all, File};
@@ -180,7 +179,7 @@ mod tests {
               |_test-file
                 "zip-content"
     "#;
-        let tmp_dir = TempDir::new()?;
+        let tmp_dir = TempDir::new().unwrap();
 
         // when
         setup_fs(tmp_dir.path(), tree)?;
@@ -196,7 +195,8 @@ mod tests {
             &tmp_dir
                 .path()
                 .join("initial-content/jcr-root/content/test-file"),
-        )?;
+        )
+        .unwrap();
         assert_eq!(content, "initial-content");
 
         Ok(())
