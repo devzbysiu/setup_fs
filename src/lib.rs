@@ -92,13 +92,13 @@ fn parse_fs_tree<S: Into<String>>(tree: S) -> Vec<(PathBuf, String)> {
     let mut res = Vec::new();
     let tree = tree
         .into()
-        .replace("\n", "")
+        .replace('\n', "")
         .chars()
         .filter(|c| !c.is_whitespace())
         .collect::<String>()
         .replace("||", "|")
         .replace("|_", "/")
-        .replace("|", "");
+        .replace('|', "");
     let entries: Vec<&str> = tree.split_inclusive("\"/").collect();
     for entry in entries {
         let e = entry.replace("\"/", "\"");
