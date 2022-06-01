@@ -31,11 +31,11 @@
 
 # <p id="about">About</p>
 
-This is very small library which allows to quickly setup directory structures in tree-like manner.
+This is very small library which allows to quickly set up directory structures in tree-like manner.
 
-**NOTE:** This is very limited, incomplete and not battle tested library . I'm using it in my
+**NOTE:** This is very limited, incomplete and not battle tested library. I'm using it in my
 personal projects only in tests to quickly create desired filesystem without boilerplate.
-**I don't recommend using it it production**.
+**I don't recommend using it in production**.
 
 # <p id="example">Example</p>
 
