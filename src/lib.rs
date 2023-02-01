@@ -192,7 +192,7 @@ mod tests {
         )
         .exists());
         let content = read_to_string(
-            &tmp_dir
+            tmp_dir
                 .path()
                 .join("initial-content/jcr-root/content/test-file"),
         )
